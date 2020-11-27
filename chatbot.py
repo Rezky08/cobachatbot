@@ -19,6 +19,6 @@ def echo_all(message):
         'text': message.text,
     }
     res = send_message_api_resources(user_chat)
-    bot.reply_to(message,message.text)
+    bot.send_dice(message.chat.id)
     # bot.send_message(message.chat.id,message.text,reply_to_message_id=message.message_id,reply_markup=types.ForceReply(selective=False))
 bot.polling()
