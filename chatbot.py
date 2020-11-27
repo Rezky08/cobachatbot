@@ -4,7 +4,7 @@ import requests
 import json
 
 bot = telebot.TeleBot('1231725805:AAGNfddJG9WEEKhxgG5iSn6arrOq0m6qJ0c')
-resource_url = 'http://localhost:8000/api'
+resource_url = 'https://cupbotresources.herokuapp.com/api'
 accounts = []
 
 def send_message_api_resources(content):
