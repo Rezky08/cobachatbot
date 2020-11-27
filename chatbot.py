@@ -2,7 +2,6 @@ import telebot
 from telebot import types
 import requests
 import json
-import numpy as np
 
 bot = telebot.TeleBot('1231725805:AAGNfddJG9WEEKhxgG5iSn6arrOq0m6qJ0c')
 resource_url = 'http://localhost:8000/api'
