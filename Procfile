@@ -1,1 +1,1 @@
-woker: python chatbot.py
+web: gunicorn webhook:app
