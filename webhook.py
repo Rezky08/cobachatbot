@@ -12,7 +12,7 @@ from model import model_handle
 app = Flask(__name__)
 token = '1231725805:AAGNfddJG9WEEKhxgG5iSn6arrOq0m6qJ0c'
 model = mlp.load_model('chatbot-model')
-resource_url = ""
+resource_url = "http://cupbotresources.herokuapp.com"
 model_handle.load_data()
 
 def check_token(field,value,error):
@@ -20,6 +20,9 @@ def check_token(field,value,error):
     if not value == token:
         error(field, "is not valid")
 
+def send_message_api_resources(content):
+    global resource_url
+    return requests.post(url='{}/chat'.format(resource_url), data=content, headers={'Accept':'Application/json'})
 
 @app.route('/getChat',methods=['POST'])
 def hello_world():
@@ -34,11 +37,13 @@ def hello_world():
         'username': content['message']['from']['username'],
         'text': content['message']['text'],
     }
+    send_message_api_resources(user_chat)
     if model is None:
         message = "Mohon maaf, kami belum siap untuk menerima pesan"
         return apihelper.send_message(token, content['message']['chat']['id'], message)
     else:
         message = model_handle.get_answer(model,user_chat['text'])
+
         return apihelper.send_message(token, content['message']['chat']['id'], message)
 
 @app.route('/train',methods=['POST'])
