@@ -5,12 +5,19 @@ import filepath
 import json
 from preprocessing.text_preprocessing import Preprocessing
 
-with open(filepath.path('/model/params.json'),'r') as file:
-    params = json.load(file)
+
+bag_words = None
+labels = None
+answers =None
 preprocessing = Preprocessing()
-bag_words = params['bag_words']
-labels = params['labels']
-answers = params['answers']
+
+def load_data():
+    global bag_words,labels,answers
+    with open(filepath.path('/model/params.json'), 'r') as file:
+        params = json.load(file)
+    bag_words = params['bag_words']
+    labels = params['labels']
+    answers = params['answers']
 
 def _prep_text(text):
     global preprocessing

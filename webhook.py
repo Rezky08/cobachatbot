@@ -12,6 +12,8 @@ from model import model_handle
 app = Flask(__name__)
 token = '1231725805:AAGNfddJG9WEEKhxgG5iSn6arrOq0m6qJ0c'
 model = mlp.load_model('chatbot-model')
+resource_url = ""
+model_handle.load_data()
 
 def check_token(field,value,error):
     global token
@@ -55,4 +57,5 @@ def train_model():
         return jsonify(validator.errors),400
     th = train_handler(content['questions'],content['answers'],content['labels'])
     model = th.train()
+    model_handle.load_data()
     return jsonify({'success':True}) , 200
