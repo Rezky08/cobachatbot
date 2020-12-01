@@ -5,7 +5,7 @@ import filepath
 import json
 from preprocessing.text_preprocessing import Preprocessing
 
-with open(filepath.path('\model\params.json'),'r') as file:
+with open(filepath.path('/model/params.json'),'r') as file:
     params = json.load(file)
 preprocessing = Preprocessing()
 bag_words = params['bag_words']
