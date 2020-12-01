@@ -38,7 +38,7 @@ class train_handler():
                   "answers" : self.answers.tolist(),
                   "labels" : self.labels.tolist()
                 }
-        with open(filepath.path('\model\params.json'),'w') as file:
+        with open(filepath.path('/model/params.json'),'w') as file:
             json.dump(params,file)
 
     def predict(self,model,text):
