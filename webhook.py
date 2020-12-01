@@ -37,7 +37,8 @@ def hello_world():
         'username': content['message']['from']['username'],
         'text': content['message']['text'],
     }
-    send_message_api_resources(user_chat)
+    res = send_message_api_resources(user_chat)
+    print(res.text)
     if model is None:
         message = "Mohon maaf, kami belum siap untuk menerima pesan"
         return apihelper.send_message(token, content['message']['chat']['id'], message)
