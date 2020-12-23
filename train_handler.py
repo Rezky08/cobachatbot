@@ -5,12 +5,18 @@ from sklearn.preprocessing import MinMaxScaler
 from model import MLP_model as mlp
 import filepath
 import json
+import copy
 import sys
 
 class train_handler():
-    def __init__(self,questions,answers,labels):
+    def __init__(self,questions,answers,labels,name=None):
+        self.name = name
         self.questions = pd.DataFrame(questions).to_numpy()
+        self.questions_text = []
+        self.questions_label = []
         self.answers = pd.DataFrame(answers).to_numpy()
+        self.answers_text = []
+        self.answers_label = []
         self.labels = pd.DataFrame(labels).to_numpy()
         self.labels_trans = {'{}'.format(item):index for index,item in enumerate(self.labels[:,0])}
         self.labels_index = [index for index,item in enumerate(self.labels)]
@@ -18,6 +24,14 @@ class train_handler():
         self.x = []
         self.y = []
         self.preprocessing = Preprocessing()
+
+    def prep_params(self):
+        self.questions_text = self.questions[:,0]
+        self.questions_label = [self.labels_trans[item] for item in self.questions[:,1]]
+        self.answers_text = self.answers[:,0]
+        self.answers_label = [self.labels_trans[item] for item in self.answers[:,1]]
+        # print(self.questions)
+
 
     def prep_text(self,text):
         text = self.preprocessing.repair_slangword(text)
@@ -38,8 +52,12 @@ class train_handler():
                   "answers" : self.answers.tolist(),
                   "labels" : self.labels.tolist()
                 }
-        with open(filepath.path('/model/params.json'),'w') as file:
-            json.dump(params,file)
+        if self.name is not None:
+            with open(filepath.path('/model/{}/params.json'.format(self.name)),'w') as file:
+                json.dump(params,file)
+        else:
+            with open(filepath.path('/model/params.json'),'w') as file:
+                json.dump(params,file)
 
     def predict(self,model,text):
         text_tokenized = self.prep_text(text)
@@ -52,18 +70,17 @@ class train_handler():
         answers = self.answers[answer_index][:,1]
 
     def add_to_bagwords(self):
-        question_texts = self.questions[:, 1].tolist()
-        question_labels = self.questions[:,2].tolist()
-        for index,item in enumerate(question_texts):
+        for index,item in enumerate(self.questions_text):
             text_tokenized = self.prep_text(item)
             self.x.append(text_tokenized)
-            self.y.append(question_labels[index])
+            self.y.append(self.questions_label[index])
             self.bag_words.extend(text_tokenized)
         self.bag_words = np.unique(self.bag_words).tolist()
 
     def train(self):
+        self.prep_params()
         self.add_to_bagwords()
-        y_train = [self.labels_trans[item] for item in self.y]
+        y_train = copy.deepcopy(self.questions_label)
         y_train = np.array(y_train)
 
         x_train = []
@@ -78,9 +95,10 @@ class train_handler():
         model = mlp.create_model(x_train[0], [len(x_train[0]) * 2, round(len(self.labels) * 2), round(len(self.labels) * 1.1)],
                                  self.labels_index)
         # model.fit(x_train,y)
-        model_name = 'chatbot-model'
-        model = mlp.train_model(model, x_train, y_train, x_test, y_test)
+        model_name = self.name if self.name else "chatbot-model"
+        model = mlp.train_model(model, x_train, y_train, x_test, y_test,500)
         mlp.save_model(model, model_name)
         self.save_params()
+        model = mlp.load_model(model_name)
         return model
 

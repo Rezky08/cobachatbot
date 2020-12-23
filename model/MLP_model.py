@@ -17,25 +17,20 @@ def create_model(x_input,hidden_layer,y_output):
         except:
             layers.append(tf.keras.layers.Dense(hl, activation='relu'))
     layers.append(tf.keras.layers.Dense(len(y_output),activation='softmax'))
-    #
-    # model = tf.keras.models.Sequential([
-    #   tf.keras.layers.Input(shape=x_input.shape),
-    #   tf.keras.layers.Dense(1, activation='relu'),
-    #   tf.keras.layers.Dropout(0.2),
-    #   tf.keras.layers.Dense(len(y_output))
-    # ])
     model = tf.keras.models.Sequential(layers)
     loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
     model.compile(optimizer='adam',
                   loss=loss_fn,
                   metrics=['accuracy'])
     return model
-def train_model(model,x_train,y_train,x_test,y_test,epoch=100):
-    model.fit(x_train, y_train, epochs=epoch)
+def train_model(model,x_train,y_train,x_test,y_test,epoch=100,early_stop=False):
+    callback = tf.keras.callbacks.EarlyStopping(monitor='loss',patience=50)
+    model.fit(x_train, y_train, epochs=epoch,callbacks=[callback])
     model.evaluate(x_test,y_test , verbose=2)
     return model
 def save_model(model,name=None):
     model.save("{}/{}".format(model_location,model_name if name == None else name))
+
 def load_model(path=None):
     global save_location,model_location
     list_dir = os.listdir(model_location)

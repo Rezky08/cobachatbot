@@ -6,14 +6,14 @@ import requests
 from train_handler import train_handler
 import pandas as pd
 from model import MLP_model as mlp
-from model import model_handle
-
+from model.model_handle import model_handle
+import sys
+import os
 
 app = Flask(__name__)
-token = '1231725805:AAGNfddJG9WEEKhxgG5iSn6arrOq0m6qJ0c'
-model = mlp.load_model('chatbot-model')
+
+token = 'base64:ifkdAeUN445sfAuVslc+b8/x5VQIfk2z7Wf0ZPJtzUA='
 resource_url = "http://cupbotresources.herokuapp.com/api"
-model_handle.load_data()
 
 def check_token(field,value,error):
     global token
@@ -25,43 +25,59 @@ def send_message_api_resources(content):
     return requests.post(url='{}/chat'.format(resource_url), data=content, headers={'Accept':'Application/json'})
 
 @app.route('/getChat',methods=['POST'])
-def hello_world():
-    global model
-
+def get_answer():
     content = request.json
-    user_chat = {
-        'update_id': content['update_id'],
-        'user_id': content['message']['from']['id'],
-        'first_name': content['message']['from']['first_name'],
-        'last_name': content['message']['from']['last_name'],
-        'username': content['message']['from']['username'],
-        'text': content['message']['text'],
+
+    # validation
+    schema = {
+        'id': {'required':True},
+        'token':{'required':True,'check_with':check_token},
+        'text':{'required':True},
     }
-    res = send_message_api_resources(user_chat)
-    print(res.text)
+    validator = cerberus.Validator(schema)
+    if not validator.validate(content):
+        return jsonify(validator.errors),400
+
+    user_chat = {
+        'id': content['id'],
+        'text': content['text'],
+    }
+    model = mlp.load_model(user_chat['id'])
+    mh = model_handle(model,user_chat['id'])
+    mh.load_data()
     if model is None:
         message = "Mohon maaf, kami belum siap untuk menerima pesan"
-        return apihelper.send_message(token, content['message']['chat']['id'], message)
+        response = {
+            'ok' : False,
+            'message' : message
+        }
+        return jsonify(response),503
     else:
-        message = model_handle.get_answer(model,user_chat['text'])
-
-        return apihelper.send_message(token, content['message']['chat']['id'], message)
+        message = mh.get_answer(user_chat['text'])
+        response = {
+            'ok':True,
+            'message' : message
+        }
+        return jsonify(response),200
 
 @app.route('/train',methods=['POST'])
 def train_model():
     global check_token,model
     content = request.json
+
+    # validation
     schema = {
         'id': {'required':True},
         'token':{'required':True,'check_with':check_token},
-        'answers':{'required':True},
+        'answers':{'required':True,'empty':False},
         'questions':{'required':True},
         'labels':{'required':True}
     }
     validator = cerberus.Validator(schema)
-    if not validator:
+    if not validator.validate(content):
         return jsonify(validator.errors),400
-    th = train_handler(content['questions'],content['answers'],content['labels'])
+
+    th = train_handler(content['questions'],content['answers'],content['labels'],content['id'])
     model = th.train()
-    model_handle.load_data()
+
     return jsonify({'success':True}) , 200
