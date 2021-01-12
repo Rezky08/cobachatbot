@@ -7,6 +7,7 @@ from train_handler import train_handler
 import pandas as pd
 from model import MLP_model as mlp
 from model.model_handle import model_handle
+from preprocessing.text_preprocessing import Preprocessing
 import sys
 import os
 
@@ -23,6 +24,28 @@ def check_token(field,value,error):
 def send_message_api_resources(content):
     global resource_url
     return requests.post(url='{}/chat'.format(resource_url), data=content, headers={'Accept':'Application/json'})
+
+@app.route('/text_preprocessing',methods=['POST'])
+def preprocessing_text():
+    content = request.json
+
+    # validation
+    schema = {
+        'token': {'required': True, 'check_with': check_token},
+        'questions': {'required': True},
+    }
+    validator = cerberus.Validator(schema)
+    if not validator.validate(content):
+        return jsonify(validator.errors), 400
+
+    # Preprocessing process
+    preprocessing = Preprocessing()
+    for index,item in enumerate(content['questions']):
+        text = preprocessing.text_preprocessing(item['text'])
+        content['questions'][index]['text'] = " ".join(text)
+    print(type(content))
+    return jsonify(content)
+
 
 @app.route('/getChat',methods=['POST'])
 def get_answer():

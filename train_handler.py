@@ -96,7 +96,7 @@ class train_handler():
                                  self.labels_index)
         # model.fit(x_train,y)
         model_name = self.name if self.name else "chatbot-model"
-        model = mlp.train_model(model, x_train, y_train, x_test, y_test,500)
+        model = mlp.train_model(model, x_train, y_train, x_test, y_test,100)
         mlp.save_model(model, model_name)
         self.save_params()
         model = mlp.load_model(model_name)
