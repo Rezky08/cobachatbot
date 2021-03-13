@@ -43,7 +43,6 @@ def preprocessing_text():
     for index,item in enumerate(content['questions']):
         text = preprocessing.text_preprocessing(item['text'])
         content['questions'][index]['text'] = " ".join(text)
-    print(type(content))
     return jsonify(content)
 
 

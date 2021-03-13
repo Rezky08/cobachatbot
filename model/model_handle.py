@@ -28,7 +28,7 @@ class model_handle:
         return text_tokenized
 
     def _to_input(self,text):
-        text_tokenized = self._prep_text(text)
+        text_tokenized = self.preprocessing.text_preprocessing(text)
         x_input = []
         for index, item in enumerate(self.bag_words):
             x_input.append(text_tokenized.count(item))
